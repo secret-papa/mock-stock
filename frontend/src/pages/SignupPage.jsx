@@ -4,16 +4,10 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
+import { useSignUp } from '@/hooks/useSignUp'
 
 export default function SignupPage() {
+  const { mutate: signUp, isPending, error } = useSignUp()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,76 +24,91 @@ export default function SignupPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Signup data:', formData)
-    // TODO: API 연동
+    signUp({
+      email: formData.email,
+      password: formData.password,
+      alias: formData.nickname,
+    })
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col bg-background">
       <motion.div
+        className="flex-1 flex flex-col px-6 pt-16 pb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <Card className="w-[400px]">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">회원가입</CardTitle>
-            <CardDescription>
-              계정을 생성하여 서비스를 이용하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">이메일</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="example@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">비밀번호</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="비밀번호를 입력하세요"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="nickname">닉네임</Label>
-                <Input
-                  id="nickname"
-                  name="nickname"
-                  type="text"
-                  placeholder="닉네임을 입력하세요"
-                  value={formData.nickname}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                가입하기
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              이미 계정이 있으신가요?{' '}
-              <Link to="/login" className="text-primary hover:underline">
-                로그인
-              </Link>
+        <div className="mb-12">
+          <h1 className="text-3xl font-bold">회원가입</h1>
+          <p className="text-muted-foreground mt-2">
+            계정을 생성하여 서비스를 이용하세요
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 flex-1">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-base">이메일</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@email.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="h-12 text-base"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-base">비밀번호</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="h-12 text-base"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="nickname" className="text-base">닉네임</Label>
+            <Input
+              id="nickname"
+              name="nickname"
+              type="text"
+              placeholder="닉네임을 입력하세요"
+              value={formData.nickname}
+              onChange={handleChange}
+              required
+              className="h-12 text-base"
+            />
+          </div>
+        </form>
+
+        <div className="space-y-4 mt-auto pt-8">
+          {error && (
+            <p className="text-sm text-red-500 text-center">
+              {error.response?.data?.message || '회원가입에 실패했습니다.'}
             </p>
-          </CardFooter>
-        </Card>
+          )}
+          <Button
+            type="submit"
+            className="w-full h-12 text-base"
+            onClick={handleSubmit}
+            disabled={isPending}
+          >
+            {isPending ? '가입 중...' : '가입하기'}
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            이미 계정이 있으신가요?{' '}
+            <Link to="/login" className="text-primary font-medium hover:underline">
+              로그인
+            </Link>
+          </p>
+        </div>
       </motion.div>
     </div>
   )

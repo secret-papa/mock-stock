@@ -4,14 +4,6 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -34,59 +26,64 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col bg-background">
       <motion.div
+        className="flex-1 flex flex-col px-6 pt-16 pb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <Card className="w-[400px]">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">로그인</CardTitle>
-            <CardDescription>
-              계정에 로그인하여 서비스를 이용하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">이메일</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="example@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">비밀번호</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="비밀번호를 입력하세요"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                로그인
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              계정이 없으신가요?{' '}
-              <Link to="/signup" className="text-primary hover:underline">
-                회원가입
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
+        <div className="mb-12">
+          <h1 className="text-3xl font-bold">로그인</h1>
+          <p className="text-muted-foreground mt-2">
+            계정에 로그인하여 서비스를 이용하세요
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 flex-1">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-base">이메일</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@email.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="h-12 text-base"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-base">비밀번호</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="h-12 text-base"
+            />
+          </div>
+        </form>
+
+        <div className="space-y-4 mt-auto pt-8">
+          <Button
+            type="submit"
+            className="w-full h-12 text-base"
+            onClick={handleSubmit}
+          >
+            로그인
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            계정이 없으신가요?{' '}
+            <Link to="/signup" className="text-primary font-medium hover:underline">
+              회원가입
+            </Link>
+          </p>
+        </div>
       </motion.div>
     </div>
   )
