@@ -4,8 +4,10 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLogin } from '@/hooks/useLogin'
 
 export default function LoginPage() {
+  const { mutate: login, isPending, error } = useLogin()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,8 +23,10 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Login data:', formData)
-    // TODO: API 연동
+    login({
+      email: formData.email,
+      password: formData.password,
+    })
   }
 
   return (
@@ -70,12 +74,18 @@ export default function LoginPage() {
         </form>
 
         <div className="space-y-4 mt-auto pt-8">
+          {error && (
+            <p className="text-sm text-red-500 text-center">
+              {error.response?.data?.message || '로그인에 실패했습니다.'}
+            </p>
+          )}
           <Button
             type="submit"
             className="w-full h-12 text-base"
             onClick={handleSubmit}
+            disabled={isPending}
           >
-            로그인
+            {isPending ? '로그인 중...' : '로그인'}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             계정이 없으신가요?{' '}

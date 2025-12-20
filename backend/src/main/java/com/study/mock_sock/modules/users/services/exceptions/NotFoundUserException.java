@@ -1,0 +1,7 @@
+package com.study.mock_sock.modules.users.services.exceptions;
+
+public class NotFoundUserException extends RuntimeException {
+    public NotFoundUserException() {
+        super("사용자를 찾을 수 없습니다.");
+    }
+}
