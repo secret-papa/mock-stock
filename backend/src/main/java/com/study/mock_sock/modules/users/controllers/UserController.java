@@ -28,7 +28,7 @@ public class UserController {
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SignUpRequest request) {
         try {
-            CreateUserCommand command = new CreateUserCommand(request.email, request.password, request.alias);
+            CreateUserCommand command = new CreateUserCommand(request.email(), request.password(), request.alias());
             Long userId = userService.signup(command);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(userId);
@@ -41,7 +41,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            String token = userService.login(request.email, request.password);
+            String token = userService.login(request.email(), request.password());
             LoginResponse response = new LoginResponse(token);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -58,7 +58,11 @@ public class UserController {
     public ResponseEntity<?> me(@AuthenticationPrincipal Long userId) {
         try {
             User user = userService.getMyInfo(userId);
-            GetMyInfoResponse response = new GetMyInfoResponse(user.getId(), user.getEmail(), user.getAlias(), user.getAccount().getBalance(), user.getAccount().getStockValuationAmount());
+            GetMyInfoResponse response = GetMyInfoResponse.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .alias(user.getAlias())
+                    .build();
 
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (NotFoundUserException e) {

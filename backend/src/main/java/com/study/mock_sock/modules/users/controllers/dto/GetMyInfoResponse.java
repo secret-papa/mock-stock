@@ -1,12 +1,20 @@
 package com.study.mock_sock.modules.users.controllers.dto;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 
-@AllArgsConstructor
-public class GetMyInfoResponse {
-    public Long id;
-    public String email;
-    public String alias;
-    public int balance;
-    public int stockValuationAmount;
+public record GetMyInfoResponse(
+        Long id,
+        String email,
+        String alias,
+        int balance,
+        int stockValuationAmount
+) {
+    @Builder
+    public GetMyInfoResponse(Long id, String email, String alias, int balance, int stockValuationAmount) {
+        this.id = id;
+        this.email = email;
+        this.alias = alias;
+        this.balance = balance;
+        this.stockValuationAmount = stockValuationAmount;
+    }
 }

@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, User } from 'lucide-react'
+import { Home, BarChart3, User } from 'lucide-react'
 
 const tabs = [
   { path: '/', label: '홈', icon: Home },
+  { path: '/stocks', label: '종목', icon: BarChart3 },
   { path: '/me', label: '마이페이지', icon: User },
 ]
 
