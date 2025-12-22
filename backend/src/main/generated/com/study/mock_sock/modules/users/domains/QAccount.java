@@ -28,8 +28,6 @@ public class QAccount extends EntityPathBase<Account> {
 
     public final QUser owner;
 
-    public final NumberPath<Integer> stockValuationAmount = createNumber("stockValuationAmount", Integer.class);
-
     public QAccount(String variable) {
         this(Account.class, forVariable(variable), INITS);
     }

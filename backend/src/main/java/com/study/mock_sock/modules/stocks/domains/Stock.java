@@ -18,12 +18,12 @@ public class Stock {
 
     private String currency;
 
-    private int currentPrice;
+    private double currentPrice;
 
     private String exchange;
 
     @Builder
-    public Stock(String ticker, String name, String currency, int currentPrice, String exchange) {
+    public Stock(String ticker, String name, String currency, double currentPrice, String exchange) {
         this.ticker = ticker;
         this.name = name;
         this.currency = currency;
@@ -31,7 +31,7 @@ public class Stock {
         this.exchange = exchange;
     }
 
-    public void updatePrice(int newPrice) {
+    public void updatePrice(double newPrice) {
         this.currentPrice = newPrice;
     }
 }

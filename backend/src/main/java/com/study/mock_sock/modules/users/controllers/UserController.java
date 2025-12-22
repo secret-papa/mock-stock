@@ -58,10 +58,12 @@ public class UserController {
     public ResponseEntity<?> me(@AuthenticationPrincipal Long userId) {
         try {
             User user = userService.getMyInfo(userId);
+
             GetMyInfoResponse response = GetMyInfoResponse.builder()
                     .id(user.getId())
                     .email(user.getEmail())
                     .alias(user.getAlias())
+                    .balance(user.getAccount().getBalance())
                     .build();
 
             return ResponseEntity.status(HttpStatus.OK).body(response);

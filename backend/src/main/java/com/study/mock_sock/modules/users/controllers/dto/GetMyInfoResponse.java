@@ -6,15 +6,13 @@ public record GetMyInfoResponse(
         Long id,
         String email,
         String alias,
-        int balance,
-        int stockValuationAmount
+        int balance
 ) {
     @Builder
-    public GetMyInfoResponse(Long id, String email, String alias, int balance, int stockValuationAmount) {
+    public GetMyInfoResponse(Long id, String email, String alias, int balance) {
         this.id = id;
         this.email = email;
         this.alias = alias;
         this.balance = balance;
-        this.stockValuationAmount = stockValuationAmount;
     }
 }

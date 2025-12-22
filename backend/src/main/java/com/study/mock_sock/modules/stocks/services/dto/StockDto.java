@@ -7,7 +7,7 @@ public record StockDto(
         String ticker,
         String name,
         String currency,
-        int currentPrice,
+        double currentPrice,
         String exchange
 ) {
     public static StockDto from(Stock stock) {

@@ -12,7 +12,6 @@ public class Account {
     @Column(name = "ACCOUNT_ID")
     public Long id;
     private int balance;
-    private int stockValuationAmount;
 
     @Setter
     @OneToOne(fetch = FetchType.LAZY)
@@ -20,8 +19,18 @@ public class Account {
     private User owner;
 
     @Builder
-    public Account(int balance, int stockValuationAmount, User owner) {
+    public Account(int balance) {
         this.balance = balance;
-        this.stockValuationAmount = stockValuationAmount;
+    }
+
+    public void withdraw(int amount) {
+        if (this.balance < amount) {
+            throw new RuntimeException("잔액이 부족하여 주식을 살 수 없습니다.");
+        }
+        this.balance -= amount;
+    }
+
+    public void deposit(int amount) {
+        this.balance += amount;
     }
 }

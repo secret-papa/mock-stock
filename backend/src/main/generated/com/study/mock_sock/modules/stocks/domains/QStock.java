@@ -21,7 +21,7 @@ public class QStock extends EntityPathBase<Stock> {
 
     public final StringPath currency = createString("currency");
 
-    public final NumberPath<Integer> currentPrice = createNumber("currentPrice", Integer.class);
+    public final NumberPath<Double> currentPrice = createNumber("currentPrice", Double.class);
 
     public final StringPath exchange = createString("exchange");
 

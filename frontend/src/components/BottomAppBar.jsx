@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, BarChart3, User } from 'lucide-react'
+import { Home, BarChart3, Briefcase, History, User } from 'lucide-react'
 
 const tabs = [
   { path: '/', label: '홈', icon: Home },
   { path: '/stocks', label: '종목', icon: BarChart3 },
-  { path: '/me', label: '마이페이지', icon: User },
+  { path: '/portfolio', label: '보유', icon: Briefcase },
+  { path: '/trades', label: '거래', icon: History },
+  { path: '/me', label: '마이', icon: User },
 ]
 
 export default function BottomAppBar() {

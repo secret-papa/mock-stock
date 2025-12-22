@@ -1,12 +1,15 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import BottomAppBar from '@/components/BottomAppBar'
+import LoadingSpinner from '@/components/LoadingSpinner'
 import { useStocks, useSearchStocks } from '@/hooks/useStocks'
 
 export default function StocksPage() {
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedExchange, setSelectedExchange] = useState('전체')
@@ -96,9 +99,7 @@ export default function StocksPage() {
         <Card className="border-0">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="py-8 text-center text-muted-foreground">
-                로딩 중...
-              </div>
+              <LoadingSpinner />
             ) : filteredStocks.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">
                 검색 결과가 없습니다
@@ -108,6 +109,7 @@ export default function StocksPage() {
                 {filteredStocks.map((stock) => (
                   <li
                     key={stock.id}
+                    onClick={() => navigate(`/stocks/${stock.id}`, { state: { stock } })}
                     className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <div>
