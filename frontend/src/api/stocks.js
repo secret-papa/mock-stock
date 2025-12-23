@@ -11,3 +11,10 @@ export const searchStocks = async (keyword) => {
   })
   return response.data
 }
+
+export const getStockChart = async (stockId, range = '1h') => {
+  const response = await apiClient.get(`/stocks/${stockId}/chart`, {
+    params: { range },
+  })
+  return response.data
+}

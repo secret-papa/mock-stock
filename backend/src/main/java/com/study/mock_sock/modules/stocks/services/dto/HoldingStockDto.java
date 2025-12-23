@@ -5,6 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record HoldingStockDto(
+        Long stockId,
         String name,
         String ticker,
         int quantity,
@@ -16,6 +17,7 @@ public record HoldingStockDto(
 ) {
     public static HoldingStockDto from(HoldingStock holdingStock) {
         return new HoldingStockDto(
+                holdingStock.getStock().getId(),
                 holdingStock.getStock().getName(),
                 holdingStock.getStock().getTicker(),
                 holdingStock.getQuantity(),

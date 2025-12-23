@@ -45,7 +45,7 @@ export default function MyPage() {
             {/* 계정 관리 */}
             <Button
               onClick={logout}
-              variant="outline"
+              variant="ghost"
               className="w-full h-12"
             >
               로그아웃

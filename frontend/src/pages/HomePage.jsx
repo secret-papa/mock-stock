@@ -49,7 +49,7 @@ export default function HomePage() {
         transition={{ duration: 0.4 }}
       >
         <div className="mb-6 px-2">
-          <p className="text-muted-foreground text-sm">안녕하세요,</p>
+          <p className="text-muted-foreground text-sm">안녕하세요.</p>
           <h1 className="text-xl font-bold">{isLoading ? '...' : me?.alias}님</h1>
         </div>
 

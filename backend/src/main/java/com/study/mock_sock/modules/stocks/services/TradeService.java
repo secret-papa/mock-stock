@@ -105,6 +105,7 @@ public class TradeService {
         List<HoldingStock> holdingStocks = holdingStockRepository.findAllByUserId(userId);
         return holdingStocks.stream()
                 .map(holdingStock -> HoldingStockDto.builder()
+                        .stockId(holdingStock.getStock().getId())
                         .name(holdingStock.getStock().getName())
                         .ticker(holdingStock.getStock().getTicker())
                         .quantity(holdingStock.getQuantity())

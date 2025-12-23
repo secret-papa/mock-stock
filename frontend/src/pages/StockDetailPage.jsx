@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Minus, Plus, TrendingUp, TrendingDown } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,18 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Drawer, DrawerContent } from '@/components/ui/drawer'
 import { useBuyStock, useSellStock } from '@/hooks/useTrades'
 import { usePortfolio } from '@/hooks/usePortfolio'
-
-// TODO: API 연동 시 제거
-const MOCK_CHART_DATA = [
-  { time: '09:00', price: 192 },
-  { time: '10:00', price: 193 },
-  { time: '11:00', price: 191 },
-  { time: '12:00', price: 194 },
-  { time: '13:00', price: 196 },
-  { time: '14:00', price: 195 },
-  { time: '15:00', price: 193 },
-  { time: '16:00', price: 195 },
-]
+import { useStockChart } from '@/hooks/useStocks'
+import LoadingSpinner from '@/components/LoadingSpinner'
 
 export default function StockDetailPage() {
   const location = useLocation()
@@ -29,6 +19,7 @@ export default function StockDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [orderType, setOrderType] = useState(null) // 'buy' or 'sell'
+  const [chartRange, setChartRange] = useState('1h') // '1h', '1d', '1w', '1m'
 
   const { mutate: buyStock, isPending: isBuying } = useBuyStock()
   const { mutate: sellStock, isPending: isSelling } = useSellStock()
@@ -44,11 +35,15 @@ export default function StockDetailPage() {
 
   // stock 정보 구성 (stock 또는 holding에서)
   const stockInfo = stock || (holding ? {
+    id: holding.stockId,
     ticker: holding.ticker,
     name: holding.name,
     currentPrice: holding.currentPrice,
     currency: holding.currency,
   } : null)
+
+  // 차트 데이터 조회
+  const { data: chartHistory = [], isLoading: isChartLoading } = useStockChart(stockInfo?.id, chartRange)
 
   if (!stockInfo) {
     return (
@@ -58,10 +53,45 @@ export default function StockDetailPage() {
     )
   }
 
-  const chartData = MOCK_CHART_DATA
-  const previousClose = stockInfo.currentPrice * 0.98 // 임시 전일 종가
-  const priceChange = stockInfo.currentPrice - previousClose
-  const priceChangePercent = ((priceChange / previousClose) * 100).toFixed(2)
+  // 기간별 설정
+  const chartPeriods = [
+    { key: '1h', label: '1시간' },
+    { key: '1d', label: '1일' },
+    { key: '1w', label: '1주' },
+    { key: '1m', label: '1개월' },
+  ]
+
+  const chartData = useMemo(() => {
+    if (!chartHistory.length) return []
+
+    // 시간 포맷 결정
+    const formatTime = (dateStr) => {
+      const date = new Date(dateStr)
+      switch (chartRange) {
+        case '1h':
+        case '1d':
+          return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+        case '1w':
+          return date.toLocaleDateString('ko-KR', { weekday: 'short' })
+        case '1m':
+          return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
+        default:
+          return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+      }
+    }
+
+    return chartHistory.map(item => ({
+      time: formatTime(item.time),
+      fullTime: new Date(item.time).toLocaleString('ko-KR'),
+      price: item.price,
+    }))
+  }, [chartHistory, chartRange])
+
+  // 가격 변동 계산 (첫번째와 마지막 데이터 비교)
+  const firstPrice = chartData.length > 0 ? chartData[0].price : stockInfo.currentPrice
+  const lastPrice = chartData.length > 0 ? chartData[chartData.length - 1].price : stockInfo.currentPrice
+  const priceChange = lastPrice - firstPrice
+  const priceChangePercent = firstPrice > 0 ? ((priceChange / firstPrice) * 100).toFixed(2) : 0
   const isPositive = priceChange >= 0
 
   const formatPrice = (price, currency) => {
@@ -170,44 +200,79 @@ export default function StockDetailPage() {
               </div>
             </div>
 
+            {/* 기간 선택 탭 */}
+            <div className="flex gap-1 mb-3">
+              {chartPeriods.map((period) => (
+                <button
+                  key={period.key}
+                  onClick={() => setChartRange(period.key)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    chartRange === period.key
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+
             {/* 차트 */}
             <div className="h-40 -mx-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor={isPositive ? '#ef4444' : '#3b82f6'}
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={isPositive ? '#ef4444' : '#3b82f6'}
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="time"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: '#9ca3af' }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    domain={['dataMin - 2', 'dataMax + 2']}
-                    hide
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="price"
-                    stroke={isPositive ? '#ef4444' : '#3b82f6'}
-                    strokeWidth={2}
-                    fill="url(#colorPrice)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {isChartLoading ? (
+                <LoadingSpinner className="h-full py-0" />
+              ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor={isPositive ? '#ef4444' : '#3b82f6'}
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor={isPositive ? '#ef4444' : '#3b82f6'}
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="time"
+                      hide
+                    />
+                    <YAxis
+                      domain={['dataMin - 2', 'dataMax + 2']}
+                      hide
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white px-2 py-1 rounded shadow-lg border text-xs">
+                              <p className="text-muted-foreground">{payload[0].payload.fullTime}</p>
+                              <p className="font-medium">{formatPrice(payload[0].value, stockInfo.currency)}</p>
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="price"
+                      stroke={isPositive ? '#ef4444' : '#3b82f6'}
+                      strokeWidth={2}
+                      fill="url(#colorPrice)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                  해당 기간의 데이터가 없습니다
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
