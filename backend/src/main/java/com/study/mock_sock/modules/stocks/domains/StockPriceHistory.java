@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(indexes = {
-        @Index(name = "idx_stock_id_time", columnList = "stock_id, recordedAt"),
+        @Index(name = "idx_stock_id_time", columnList = "stock_id, recorded_at"),
 })
 public class StockPriceHistory {
     @Id

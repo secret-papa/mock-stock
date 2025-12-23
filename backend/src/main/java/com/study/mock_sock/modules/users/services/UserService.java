@@ -43,7 +43,7 @@ public class UserService {
                 .build();
 
         Account account = Account.builder()
-                .balance(100_000_000)
+                .balance(10_000_000)
                 .build();
 
         user.linkAccount(account);

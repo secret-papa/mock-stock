@@ -64,6 +64,10 @@ public class StockPriceHistoryService {
 
     @Transactional
     public void deleteOldHistory(LocalDateTime dateTime) {
-        stockPriceHistoryRepository.deleteOldHistory(dateTime);
+        int deletedCount;
+
+        do {
+            deletedCount = stockPriceHistoryRepository.deleteOldHistory(dateTime);
+        } while (deletedCount > 0);
     }
 }

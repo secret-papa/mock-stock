@@ -32,5 +32,5 @@ public interface StockPriceHistoryRepository extends JpaRepository<StockPriceHis
     @Modifying
     @Transactional
     @Query(value = "DELETE FROM stock_price_history WHERE recorded_at < :dateTime LIMIT 5000", nativeQuery = true)
-    void deleteOldHistory(@Param("dateTime") LocalDateTime dateTime);
+    int deleteOldHistory(@Param("dateTime") LocalDateTime dateTime);
 }
