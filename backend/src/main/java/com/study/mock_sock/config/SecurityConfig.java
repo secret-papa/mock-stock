@@ -29,10 +29,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/static/**", "/favicon.ico", "/*.png").permitAll()
+                        .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/favicon.ico", "/*.png").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/sign-up", "/auth/login").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/sign-up", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/{path:[^\\.]*}").permitAll()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 

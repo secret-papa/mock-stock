@@ -4,6 +4,7 @@
 
 ## 기술 스택
 
+### Backend
 - **Framework**: Spring Boot 4.0.1
 - **Language**: Java 21
 - **Database**: MySQL
@@ -11,45 +12,95 @@
 - **Security**: Spring Security + JWT
 - **External API**: Yahoo Finance API (WebFlux)
 
-## 서버 아키텍처
+### Frontend
+- **Framework**: React 18 + Vite
+- **State Management**: TanStack Query (React Query)
+- **Styling**: Tailwind CSS 4
+- **UI Components**: Radix UI, shadcn/ui
+- **Charts**: Recharts
+- **HTTP Client**: Axios
+- **Routing**: React Router DOM
+
+## 프로젝트 구조
 
 ```
-backend/
-├── config/                          # 설정
-│   ├── SecurityConfig.java          # Spring Security 설정
-│   ├── WebClientConfig.java         # WebClient 설정 (외부 API 호출)
-│   ├── QuerydslConfig.java          # QueryDSL 설정
-│   └── DotEnvConfig.java            # 환경변수 설정
+mock-stock/
+├── backend/
+│   └── src/main/java/com/study/mock_sock/
+│       ├── config/                      # 설정
+│       │   ├── SecurityConfig.java      # Spring Security
+│       │   ├── WebClientConfig.java     # Yahoo API 호출
+│       │   ├── WebMvcConfig.java        # SPA 라우팅 지원
+│       │   ├── QuerydslConfig.java      # QueryDSL
+│       │   └── DotEnvConfig.java        # 환경변수 (.env)
+│       │
+│       ├── common/
+│       │   └── auth/
+│       │       ├── JwtProvider.java     # JWT 생성/검증
+│       │       └── JwtAuthenticationFilter.java
+│       │
+│       └── modules/
+│           ├── users/                   # 사용자 모듈
+│           │   ├── domains/
+│           │   │   ├── User.java
+│           │   │   └── Account.java
+│           │   ├── controllers/
+│           │   ├── services/
+│           │   └── repositories/
+│           │
+│           └── stocks/                  # 주식 모듈
+│               ├── domains/
+│               │   ├── Stock.java
+│               │   ├── Trade.java
+│               │   ├── HoldingStock.java
+│               │   └── StockPriceHistory.java
+│               ├── controllers/
+│               ├── services/
+│               ├── repositories/
+│               ├── scheduler/           # 가격 갱신 스케줄러
+│               └── initializer/         # 초기 종목 데이터
 │
-├── common/
-│   ├── auth/
-│   │   ├── JwtProvider.java         # JWT 토큰 생성/검증
-│   │   └── JwtAuthenticationFilter.java
-│   └── dto/
-│       └── ErrorResponse.java
+├── frontend/
+│   └── src/
+│       ├── api/                         # API 클라이언트
+│       │   ├── client.js                # Axios 인스턴스
+│       │   ├── auth.js
+│       │   ├── stocks.js
+│       │   ├── trades.js
+│       │   ├── portfolio.js
+│       │   └── exchange.js
+│       │
+│       ├── hooks/                       # React Query 훅
+│       │   ├── useLogin.js
+│       │   ├── useSignUp.js
+│       │   ├── useMe.js
+│       │   ├── useStocks.js
+│       │   ├── useTrades.js             # 무한스크롤 지원
+│       │   ├── usePortfolio.js
+│       │   └── useExchangeRate.js
+│       │
+│       ├── pages/                       # 페이지 컴포넌트
+│       │   ├── HomePage.jsx
+│       │   ├── LoginPage.jsx
+│       │   ├── SignupPage.jsx
+│       │   ├── StocksPage.jsx
+│       │   ├── StockDetailPage.jsx      # 차트, 매수/매도
+│       │   ├── PortfolioPage.jsx
+│       │   ├── TradesPage.jsx           # 무한스크롤
+│       │   └── MyPage.jsx
+│       │
+│       └── components/
+│           ├── ui/                      # shadcn/ui 컴포넌트
+│           ├── BottomAppBar.jsx
+│           ├── LoadingSpinner.jsx
+│           └── ProtectedRoute.jsx
 │
-└── modules/
-    ├── users/                       # 사용자 모듈
-    │   ├── domains/
-    │   │   ├── User.java            # 사용자 엔티티
-    │   │   └── Account.java         # 계좌 엔티티 (잔액 관리)
-    │   ├── repositories/
-    │   ├── controllers/
-    │   └── services/
-    │
-    └── stocks/                      # 주식 모듈
-        ├── domains/
-        │   ├── Stock.java           # 주식 종목 엔티티
-        │   ├── Trade.java           # 거래 내역 엔티티
-        │   ├── HoldingStock.java    # 보유 주식 엔티티
-        │   └── StockPriceHistory.java # 가격 히스토리 엔티티
-        ├── repositories/
-        ├── controllers/
-        ├── services/
-        ├── scheduler/
-        │   └── StockPriceScheduler.java  # 가격 갱신 스케줄러
-        └── initializer/
-            └── StockInitializer.java     # 초기 종목 데이터 설정
+├── scripts/
+│   └── ec2-setup.sh                     # EC2 초기 설정
+│
+└── .github/
+    └── workflows/
+        └── deploy.yml                   # CI/CD 파이프라인
 ```
 
 ## ERD
@@ -128,34 +179,38 @@ backend/
 - 동적 샘플링으로 약 14개 데이터 포인트 반환
 - **매일 03시** 1개월 이상 된 히스토리 자동 삭제
 
+### 6. 거래 내역 무한스크롤
+- Slice 기반 페이지네이션
+- IntersectionObserver를 활용한 무한스크롤
+
 ## API 엔드포인트
 
 ### 인증
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/auth/signup` | 회원가입 |
-| POST | `/auth/login` | 로그인 |
-| GET | `/auth/me` | 내 정보 조회 |
+| POST | `/api/auth/sign-up` | 회원가입 |
+| POST | `/api/auth/login` | 로그인 |
+| GET | `/api/auth/me` | 내 정보 조회 |
 
 ### 주식
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/stocks` | 전체 종목 조회 |
-| GET | `/stocks/search?keyword=` | 종목 검색 |
-| GET | `/stocks/{stockId}/chart?range=1h` | 차트 데이터 조회 |
+| GET | `/api/stocks` | 전체 종목 조회 |
+| GET | `/api/stocks/search?keyword=` | 종목 검색 |
+| GET | `/api/stocks/{stockId}/chart?range=1h` | 차트 데이터 (1h, 1d, 1w, 1m) |
 
 ### 거래
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/trades/buy` | 주식 매수 |
-| POST | `/trades/sell` | 주식 매도 |
-| GET | `/trades` | 거래 내역 조회 |
-| GET | `/trades/holdings` | 보유 주식 조회 |
+| POST | `/api/trades/buy` | 주식 매수 |
+| POST | `/api/trades/sell` | 주식 매도 |
+| GET | `/api/trades?page=0&size=20` | 거래 내역 (페이지네이션) |
+| GET | `/api/portfolio` | 보유 주식 조회 |
 
 ### 환율
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/exchange/rate` | 현재 환율 조회 |
+| GET | `/api/exchange` | 현재 환율 조회 |
 
 ## 스케줄러
 

@@ -5,7 +5,6 @@ import com.study.mock_sock.modules.stocks.services.StockService;
 import com.study.mock_sock.modules.stocks.services.dto.StockDto;
 import com.study.mock_sock.modules.stocks.services.dto.StockPriceHistoryDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/stocks")
+@RequestMapping("/api/stocks")
 public class StockController {
     private final StockService stockService;
     private final StockPriceHistoryService stockPriceHistoryService;

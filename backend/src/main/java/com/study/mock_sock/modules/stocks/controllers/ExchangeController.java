@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/exchange")
+@RequestMapping("/api/exchange")
 public class ExchangeController {
     private final ExchangeService exchangeService;
 

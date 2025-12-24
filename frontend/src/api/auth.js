@@ -1,7 +1,7 @@
 import { apiClient } from './client'
 
 export const signUp = async ({ email, password, alias }) => {
-  const response = await apiClient.post('/auth/sign-up', {
+  const response = await apiClient.post('/api/auth/sign-up', {
     email,
     password,
     alias,
@@ -10,7 +10,7 @@ export const signUp = async ({ email, password, alias }) => {
 }
 
 export const login = async ({ email, password }) => {
-  const response = await apiClient.post('/auth/login', {
+  const response = await apiClient.post('/api/auth/login', {
     email,
     password,
   })
@@ -18,6 +18,6 @@ export const login = async ({ email, password }) => {
 }
 
 export const getMe = async () => {
-  const response = await apiClient.get('/auth/me')
+  const response = await apiClient.get('/api/auth/me')
   return response.data
 }
