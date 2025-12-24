@@ -7,8 +7,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.List;
 
 @Component
@@ -19,8 +19,13 @@ public class StockInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Resource resource = (Resource) resourceLoader.getResource("classpath:tickers.txt");
-        List<String> tickers = Files.readAllLines(Paths.get(resource.getURI()));
+        Resource resource = resourceLoader.getResource("classpath:tickers.txt");
+        List<String> tickers;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+            tickers = reader.lines()
+                    .filter(line -> !line.isBlank())
+                    .toList();
+        }
         int savedTickerSize = 0;
 
         for (String ticker : tickers) {
