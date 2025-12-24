@@ -1,0 +1,129 @@
+name: Build and Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Copy frontend build to backend static
+        run: |
+          mkdir -p backend/src/main/resources/static
+          cp -r frontend/dist/* backend/src/main/resources/static/
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        working-directory: backend
+        run: chmod +x gradlew
+
+      - name: Build backend with Gradle
+        working-directory: backend
+        run: ./gradlew bootJar -x test
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: backend/build/libs/*.jar
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: ./
+
+      - name: Get jar filename
+        id: jar
+        run: echo "filename=$(ls *.jar | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: ${{ steps.jar.outputs.filename }}
+          target: /home/${{ secrets.EC2_USERNAME }}/app/
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DB_URL,DB_USERNAME,DB_PASSWORD
+          script: |
+            cd /home/${{ secrets.EC2_USERNAME }}/app
+
+            # Stop existing application
+            if [ -f app.pid ]; then
+              kill $(cat app.pid) 2>/dev/null || true
+              rm app.pid
+            fi
+
+            # Find and rename new jar
+            NEW_JAR=$(ls -t *.jar | head -1)
+            mv "$NEW_JAR" app.jar 2>/dev/null || true
+
+            # Start application with environment variables
+            nohup java -jar \
+              -Dspring.profiles.active=prod \
+              -Dserver.port=8080 \
+              -DDB_URL="$DB_URL" \
+              -DDB_USERNAME="$DB_USERNAME" \
+              -DDB_PASSWORD="$DB_PASSWORD" \
+              app.jar > app.log 2>&1 &
+
+            echo $! > app.pid
+
+            # Wait and check if started
+            sleep 10
+            if ps -p $(cat app.pid) > /dev/null; then
+              echo "Application started successfully"
+            else
+              echo "Failed to start application"
+              tail -50 app.log
+              exit 1
+            fi
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}

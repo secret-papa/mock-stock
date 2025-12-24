@@ -165,19 +165,92 @@ backend/
 | `updateExchangeRate` | 1시간 | USD/KRW 환율 갱신 |
 | `cleanupOldData` | 매일 03시 | 1개월 이상 된 가격 히스토리 삭제 |
 
-## 실행 방법
+## 로컬 실행 방법
 
+### Backend
 ```bash
 cd backend
 ./gradlew bootRun
 ```
 
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
 ## 환경 변수
 
-`.env` 파일 설정 필요:
-
+### Backend (.env)
 ```
 DB_URL=jdbc:mysql://localhost:3306/mock_stock
 DB_USERNAME=root
 DB_PASSWORD=password
+```
+
+### Frontend (.env.development)
+```
+VITE_API_URL=http://localhost:8080
+```
+
+## AWS EC2 배포
+
+### 1. EC2 초기 설정
+
+```bash
+# EC2 인스턴스에서 실행
+curl -O https://raw.githubusercontent.com/YOUR_REPO/main/scripts/ec2-setup.sh
+chmod +x ec2-setup.sh
+./ec2-setup.sh
+```
+
+### 2. GitHub Secrets 설정
+
+Repository Settings > Secrets and variables > Actions에서 다음 설정:
+
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `EC2_HOST` | EC2 퍼블릭 IP 또는 도메인 | `12.34.56.78` |
+| `EC2_USERNAME` | EC2 사용자명 | `ec2-user` 또는 `ubuntu` |
+| `EC2_SSH_KEY` | EC2 SSH 개인키 (pem 파일 내용) | `-----BEGIN RSA...` |
+| `DB_URL` | MySQL 접속 URL | `jdbc:mysql://rds-endpoint:3306/mock_stock` |
+| `DB_USERNAME` | DB 사용자명 | `admin` |
+| `DB_PASSWORD` | DB 비밀번호 | `your-password` |
+
+### 3. 배포
+
+`main` 브랜치에 push하면 자동 배포됩니다.
+
+### 배포 구조
+
+```
+[GitHub Actions]
+     │
+     ├─ 1. Frontend 빌드 (npm run build)
+     ├─ 2. Backend static 폴더에 복사
+     ├─ 3. Backend JAR 빌드
+     │
+     ▼
+[EC2 Instance]
+     │
+     └─ Spring Boot (8080)
+          ├─ API 요청 처리
+          └─ React 정적 파일 서빙
+```
+
+### 서비스 관리 명령어
+
+```bash
+# 서비스 시작
+sudo systemctl start mock-stock
+
+# 서비스 중지
+sudo systemctl stop mock-stock
+
+# 서비스 상태 확인
+sudo systemctl status mock-stock
+
+# 로그 확인
+tail -f ~/app/app.log
 ```
