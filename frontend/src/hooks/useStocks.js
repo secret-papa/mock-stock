@@ -1,10 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
-import { getStocks, searchStocks, getStockChart } from '@/api/stocks'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import { getStocks, getExchanges, searchStocks, getStockChart } from '@/api/stocks'
 
-export const useStocks = () => {
+export const useStocks = (exchange) => {
+  return useInfiniteQuery({
+    queryKey: ['stocks', exchange],
+    queryFn: ({ pageParam = 0 }) => getStocks({ page: pageParam, exchange }),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.last) return undefined
+      return lastPage.number + 1
+    },
+    initialPageParam: 0,
+  })
+}
+
+export const useExchanges = () => {
   return useQuery({
-    queryKey: ['stocks'],
-    queryFn: getStocks,
+    queryKey: ['exchanges'],
+    queryFn: getExchanges,
   })
 }
 

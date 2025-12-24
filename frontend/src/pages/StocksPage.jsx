@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
@@ -6,15 +6,24 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import BottomAppBar from '@/components/BottomAppBar'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import { useStocks, useSearchStocks } from '@/hooks/useStocks'
+import { useStocks, useExchanges, useSearchStocks } from '@/hooks/useStocks'
 
 export default function StocksPage() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [selectedExchange, setSelectedExchange] = useState('전체')
+  const [selectedExchange, setSelectedExchange] = useState(null)
+  const observerRef = useRef(null)
 
-  const { data: allStocks = [], isLoading: isLoadingAll } = useStocks()
+  const exchangeParam = selectedExchange || undefined
+  const {
+    data: stocksData,
+    isLoading: isLoadingAll,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useStocks(exchangeParam)
+  const { data: exchangeList = [] } = useExchanges()
   const { data: searchResults = [], isLoading: isSearching } = useSearchStocks(debouncedQuery)
 
   useEffect(() => {
@@ -25,13 +34,29 @@ export default function StocksPage() {
   }, [searchQuery])
 
   const isSearchMode = !!debouncedQuery
+  const allStocks = stocksData?.pages?.flatMap((page) => page.content) ?? []
   const stocks = isSearchMode ? searchResults : allStocks
   const isLoading = isSearchMode ? isSearching : isLoadingAll
 
+  const lastItemRef = useCallback(
+    (node) => {
+      if (isSearchMode || isFetchingNextPage) return
+      if (observerRef.current) observerRef.current.disconnect()
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage()
+        }
+      })
+
+      if (node) observerRef.current.observe(node)
+    },
+    [isSearchMode, isFetchingNextPage, hasNextPage, fetchNextPage]
+  )
+
   const exchanges = useMemo(() => {
-    const uniqueExchanges = [...new Set(allStocks.map((stock) => stock.exchange))]
-    return ['전체', ...uniqueExchanges]
-  }, [allStocks])
+    return [null, ...exchangeList]
+  }, [exchangeList])
 
   const isValidStock = (stock) => {
     return (
@@ -43,12 +68,8 @@ export default function StocksPage() {
   }
 
   const filteredStocks = useMemo(() => {
-    return stocks
-      .filter(isValidStock)
-      .filter((stock) => {
-        return selectedExchange === '전체' || stock.exchange === selectedExchange
-      })
-  }, [stocks, selectedExchange])
+    return stocks.filter(isValidStock)
+  }, [stocks])
 
   const formatPrice = (price, currency) => {
     const validCurrency = currency && currency !== 'null' ? currency : 'USD'
@@ -83,7 +104,7 @@ export default function StocksPage() {
         <div className="flex gap-2 overflow-x-auto pb-3 mb-2 scrollbar-hide">
           {exchanges.map((exchange) => (
             <button
-              key={exchange}
+              key={exchange ?? 'all'}
               onClick={() => setSelectedExchange(exchange)}
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
                 selectedExchange === exchange
@@ -91,7 +112,7 @@ export default function StocksPage() {
                   : 'bg-white text-muted-foreground shadow-sm hover:bg-muted'
               }`}
             >
-              {exchange}
+              {exchange ?? '전체'}
             </button>
           ))}
         </div>
@@ -106,9 +127,10 @@ export default function StocksPage() {
               </div>
             ) : (
               <ul className="divide-y">
-                {filteredStocks.map((stock) => (
+                {filteredStocks.map((stock, index) => (
                   <li
                     key={stock.id}
+                    ref={index === filteredStocks.length - 1 ? lastItemRef : null}
                     onClick={() => navigate(`/stocks/${stock.id}`, { state: { stock } })}
                     className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer"
                   >
@@ -122,6 +144,11 @@ export default function StocksPage() {
                   </li>
                 ))}
               </ul>
+            )}
+            {isFetchingNextPage && (
+              <div className="py-4">
+                <LoadingSpinner />
+              </div>
             )}
           </CardContent>
         </Card>

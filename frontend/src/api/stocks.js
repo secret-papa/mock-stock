@@ -1,7 +1,14 @@
 import { apiClient } from './client'
 
-export const getStocks = async () => {
-  const response = await apiClient.get('/api/stocks')
+export const getStocks = async ({ page = 0, size = 20, exchange }) => {
+  const response = await apiClient.get('/api/stocks', {
+    params: { page, size, exchange: exchange || undefined },
+  })
+  return response.data
+}
+
+export const getExchanges = async () => {
+  const response = await apiClient.get('/api/stocks/exchanges')
   return response.data
 }
 

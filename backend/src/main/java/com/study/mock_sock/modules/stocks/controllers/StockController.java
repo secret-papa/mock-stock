@@ -5,6 +5,7 @@ import com.study.mock_sock.modules.stocks.services.StockService;
 import com.study.mock_sock.modules.stocks.services.dto.StockDto;
 import com.study.mock_sock.modules.stocks.services.dto.StockPriceHistoryDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,9 +23,18 @@ public class StockController {
     private final StockPriceHistoryService stockPriceHistoryService;
 
     @GetMapping
-    public ResponseEntity<List<StockDto>> findAllStocks() {
-        List<StockDto> stockDtos = stockService.findAll();
+    public ResponseEntity<Slice<StockDto>> findAllStocks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String exchange) {
+        Slice<StockDto> stockDtos = stockService.findAll(page, size, exchange);
         return ResponseEntity.ok(stockDtos);
+    }
+
+    @GetMapping("/exchanges")
+    public ResponseEntity<List<String>> getExchanges() {
+        List<String> exchanges = stockService.getExchanges();
+        return ResponseEntity.ok(exchanges);
     }
 
     @GetMapping("/search")

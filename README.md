@@ -195,7 +195,8 @@ mock-stock/
 ### 주식
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/stocks` | 전체 종목 조회 |
+| GET | `/api/stocks?page=0&size=20&exchange=` | 종목 조회 (페이지네이션, 거래소 필터) |
+| GET | `/api/stocks/exchanges` | 거래소 목록 조회 |
 | GET | `/api/stocks/search?keyword=` | 종목 검색 |
 | GET | `/api/stocks/{stockId}/chart?range=1h` | 차트 데이터 (1h, 1d, 1w, 1m) |
 
