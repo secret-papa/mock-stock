@@ -1,7 +1,9 @@
 import { apiClient } from './client'
 
-export const getTrades = async () => {
-  const response = await apiClient.get('/trades')
+export const getTrades = async ({ page = 0, size = 20 }) => {
+  const response = await apiClient.get('/trades', {
+    params: { page, size },
+  })
   return response.data
 }
 

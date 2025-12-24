@@ -6,6 +6,7 @@ import com.study.mock_sock.modules.stocks.services.TradeService;
 import com.study.mock_sock.modules.stocks.services.dto.HoldingStockDto;
 import com.study.mock_sock.modules.stocks.services.dto.TradeDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,8 +20,12 @@ public class TradeController {
     private final TradeService tradeService;
 
     @GetMapping("/trades")
-    public ResponseEntity<List<TradeDto>> getTrades(@AuthenticationPrincipal Long userId) {
-        List<TradeDto> trades = tradeService.listTrade(userId);
+    public ResponseEntity<Slice<TradeDto>> getTrades(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Slice<TradeDto> trades = tradeService.listTrade(userId, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(trades);
     }
 

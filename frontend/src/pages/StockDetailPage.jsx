@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Drawer, DrawerContent } from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer'
 import { useBuyStock, useSellStock } from '@/hooks/useTrades'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { useStockChart } from '@/hooks/useStocks'
@@ -325,7 +325,10 @@ export default function StockDetailPage() {
 
       {/* 주문 바텀시트 */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-white">
+        <DrawerContent className="bg-white" aria-describedby={undefined}>
+          <DrawerTitle className="sr-only">
+            {orderType === 'buy' ? '매수' : '매도'} 주문
+          </DrawerTitle>
           <div className="px-4 pt-6 pb-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between">

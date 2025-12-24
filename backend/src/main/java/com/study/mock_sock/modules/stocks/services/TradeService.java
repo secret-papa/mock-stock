@@ -12,6 +12,10 @@ import com.study.mock_sock.modules.stocks.services.dto.TradeDto;
 import com.study.mock_sock.modules.users.domains.User;
 import com.study.mock_sock.modules.users.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +31,12 @@ public class TradeService {
     private final TradeRepository tradeRepository;
     private final HoldingStockRepository holdingStockRepository;
 
-    public List<TradeDto> listTrade(Long userId) {
-        List<Trade> trades = tradeRepository.findAllByUserIdOrderByTradeDateDesc(userId);
-        return trades.stream().map(TradeDto::from).toList();
+    public Slice<TradeDto> listTrade(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("tradeDate").descending());
+
+        Slice<Trade> tradeSlice = tradeRepository.findAllByUserId(userId, pageable);
+
+        return tradeSlice.map(TradeDto::from);
     }
 
     @Transactional

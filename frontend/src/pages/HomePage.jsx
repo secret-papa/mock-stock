@@ -12,7 +12,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { data: me, isLoading: isLoadingMe } = useMe()
   const { holdings, stockValuationAmount, isLoading: isLoadingPortfolio } = usePortfolio()
-  const { data: trades, isLoading: isLoadingTrades } = useTrades()
+  const { data: tradesData, isLoading: isLoadingTrades } = useTrades()
 
   const isLoading = isLoadingMe || isLoadingPortfolio
 
@@ -38,7 +38,7 @@ export default function HomePage() {
     .slice(0, 3)
 
   // 최근 3개 거래
-  const recentTrades = (trades || []).slice(0, 3)
+  const recentTrades = (tradesData?.pages?.[0]?.content || []).slice(0, 3)
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-16">

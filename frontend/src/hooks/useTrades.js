@@ -1,10 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getTrades, buyStock, sellStock } from '@/api/trades'
 
 export const useTrades = () => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['trades'],
-    queryFn: getTrades,
+    queryFn: ({ pageParam = 0 }) => getTrades({ page: pageParam }),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.last) return undefined
+      return lastPage.number + 1
+    },
+    initialPageParam: 0,
   })
 }
 
